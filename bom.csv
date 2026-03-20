@@ -1,0 +1,6 @@
+﻿Név,Mennyiség,Összetevő
+"U1",1," Arduino Uno R3"
+"Q1",1," Szórtfény-érzékelő [fototranzisztor]"
+"D1",1,"Sárga LED"
+"R1",1,"10 kΩ Ellenállás"
+"R2",1,"220 Ω Ellenállás"
