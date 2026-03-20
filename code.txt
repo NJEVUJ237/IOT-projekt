@@ -1,0 +1,78 @@
+// --- Microcontroller-based, event-driven optoelectronic switch with time window limitation ---
+
+const int ldrPin = A0;      
+const int ledPin = 8;       
+const int threshold = 500;  
+
+// 1. Software clock variables
+// I set the start time to 17:59:55 directly, so that in TinkerCAD
+// in 5 seconds, see it change to 18:00 and become active!
+
+int hour = 17;
+int minute = 59;
+int second = 55;
+unsigned long previousTimeMillis = 0; // To update the clock
+
+// 2. Lighting timer variables
+unsigned long lightTurnedOnAt = 0;
+bool isLightOn = false;
+const unsigned long lightDuration = 5000; // 5 seconds of lighting
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("System started. Waiting for active period...");
+}
+
+void loop() {
+  unsigned long currentMillis = millis(); // Read internal stopwatch
+
+  // --- 1. SZOFTVERES ÓRA LÉPTETÉSE (Minden 1000 ms = 1 mp) ---
+  if (currentMillis - previousTimeMillis >= 1000) {
+    previousTimeMillis = currentMillis; // Save the last update time
+    second++;
+    
+    if (second >= 60) {
+      second = 0;
+      minute++;
+      if (minute >= 60) {
+        minute = 0;
+        hour++;
+        if (hour >= 24) {
+          hour = 0;
+        }
+      }
+    }
+    
+    // Print time to Serial Monitor (formatted as HH:MM:MM)
+    Serial.print("Time: ");
+    if(hour < 10) Serial.print("0"); Serial.print(hour); Serial.print(":");
+    if(minute < 10) Serial.print("0"); Serial.print(minute); Serial.print(":");
+    if(second < 10) Serial.print("0"); Serial.println(second);
+  }
+
+// --- 2. TIME WINDOW EXAMINATION ---
+// Condition A: From 18:00 (6 pm) to 05:59 (6 am)
+
+  bool isAllowedTime = (hour >= 18 || hour < 6);
+
+  // --- 3. LIGHT SENSING AND LED SWITCHING ---
+  int lightValue = analogRead(ldrPin);
+
+  // If: there is an active period AND there is shadow AND the light is not yet on
+  if (isAllowedTime && lightValue < threshold && !isLightOn) {
+    isLightOn = true;                     // Update status
+    digitalWrite(ledPin, HIGH);           // LED on
+    lightTurnedOnAt = currentMillis;      // Note the moment of power-on
+    Serial.println(">>> SHADOWS! Lamp ON (We are in Active Period).");
+  }
+
+// --- 4. TURN OFF LED (WITHOUT TIME delay()) ---
+// If: the lamp is on AND the elapsed time is greater than the set 5 seconds
+
+  if (isLightOn && (currentMillis - lightTurnedOnAt >= lightDuration)) {
+    isLightOn = false;                    // Update status
+    digitalWrite(ledPin, LOW);            // LED off
+    Serial.println("<<< Timer has expired. Lamp OFF.");
+  }
+}
