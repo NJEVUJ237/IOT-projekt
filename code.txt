@@ -27,7 +27,7 @@ void setup() {
 void loop() {
   unsigned long currentMillis = millis(); // Read internal stopwatch
 
-  // --- 1. SZOFTVERES ÓRA LÉPTETÉSE (Minden 1000 ms = 1 mp) ---
+  // --- 1. SOFTWARE CLOCK STEP (Every 1000 ms = 1 sec) ---
   if (currentMillis - previousTimeMillis >= 1000) {
     previousTimeMillis = currentMillis; // Save the last update time
     second++;
